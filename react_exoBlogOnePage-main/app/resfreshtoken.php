@@ -24,4 +24,27 @@ try {
         'token' => $newJwt
     ]);
     exit;
+} catch (ExpiredException $expiredException){
+    $oldJwt = json_decode(base64_decode(explode('.', $token)[1]));
+
+    $user = (new User())
+        ->setId($oldJwt->userId)
+        ->setUsername($oldJwt->username);
+
+    $newJwt = JWT::encode($user, $key, 'HS256');
+
+    CookieHelper::setCookie($newJwt, $newUser->getUsername());
+
+    echo json_encode([
+        'status' => 'success',
+        'username' => $newUser->getUsername(),
+        'token' => $newJwt
+    ]);
+    exit;
+} catch (Exception $exception){
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Invalid Token'
+    ]);
+    exit;
 }
