@@ -14,3 +14,18 @@ export default function useRegister() {
             .then(res => res.json())
     }
 }
+
+ // axios.get('http://localhost:2345/register.php',
+            // {
+            //     withCredentials: true,
+            //     auth: {
+            //         username: username,
+            //         password: password,
+            //         expdate: expdate
+            //     }
+            // }
+            // )
+            // .then(function(res){
+            //     return res.data;
+            // })
+

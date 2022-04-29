@@ -5,6 +5,7 @@ require_once 'Classes/PDOFactory.php';
 require_once 'Classes/TokenHelper.php';
 require_once 'Classes/User.php';
 require_once 'Classes/CookieHelper.php';
+require_once './vendor/autoload.php';
 
 $username = $_REQUEST['username'] ?? '';
 $password = $_REQUEST['password'] ?? '';
@@ -33,10 +34,9 @@ if ($userAlreadyExists) {
     exit;
 }
 
-$insert = $pdo->prepare('INSERT INTO User (`username`, `password`, token) VALUES (:username, :password, :token)');
+$insert = $pdo->prepare('INSERT INTO User (`username`, `password`) VALUES (:username, :password)');
 $insert->bindValue('username', $username, PDO::PARAM_STR);
 $insert->bindValue('password', password_hash($password, PASSWORD_BCRYPT), PDO::PARAM_STR);
-$insert->bindValue('token', TokenHelper::buildToken(), PDO::PARAM_STR);
 
 if ($insert->execute()) {
     $lastInsertId = $pdo->lastInsertId();
@@ -45,12 +45,22 @@ if ($insert->execute()) {
     /** @var User $newUser */
     $newUser = $return->fetch();
 
-    CookieHelper::setCookie($newUser->getToken(), $newUser->getUsername());
+      
+    $key = 'example_key';
+    $payload = [
+        'username' => $newUser->getUsername(),
+        'password' => $newUser->getPassword(), 
+        'exp' => time() + 60 * 2
+    ];
+
+    $jwt = JWT::encode($payload, $key, 'HS256');
+
+    CookieHelper::setCookie($jwt, $newUser->getUsername());
 
     echo json_encode([
         'status' => 'success',
         'username' => $newUser->getUsername(),
-        'token' => $newUser->getToken()
+        'jtw' => $jwt
     ]);
     exit;
 }
